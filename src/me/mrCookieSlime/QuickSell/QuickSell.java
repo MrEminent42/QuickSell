@@ -252,7 +252,7 @@ public class QuickSell extends JavaPlugin {
 						}
 						else ShopMenu.openMenu((Player) sender);
 					}
-					else if (cfg.getBoolean("options.open-only-shop-with-permission")) {
+					else if (cfg.getBoolean("shop.enable-hierarchy")) {
 						if (Shop.getHighestShop((Player) sender) != null) ShopMenu.open((Player) sender, Shop.getHighestShop((Player) sender));
 						else QuickSell.local.sendTranslation(sender, "messages.no-access", false);
 					}
@@ -275,7 +275,7 @@ public class QuickSell extends JavaPlugin {
 						}
 						else local.sendTranslation(sender, "messages.unknown-shop", false);
 					}
-					else if (cfg.getBoolean("options.open-only-shop-with-permission")) {
+					else if (cfg.getBoolean("shop.enable-hierarchy")) {
 						if (Shop.getHighestShop((Player) sender) != null) {
 							Shop.getHighestShop((Player) sender).sellall((Player) sender, "", Type.SELLALL);
 						}
@@ -300,7 +300,7 @@ public class QuickSell extends JavaPlugin {
 						}
 						else local.sendTranslation(sender, "messages.unknown-shop", false);
 					}
-					else if (cfg.getBoolean("options.open-only-shop-with-permission")) {
+					else if (cfg.getBoolean("shop.enable-hierarchy")) {
 						if (Shop.getHighestShop((Player) sender) != null) {
 							Shop.getHighestShop((Player) sender).showPrices((Player) sender);
 						}
