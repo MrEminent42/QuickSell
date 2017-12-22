@@ -38,12 +38,10 @@ public class Booster {
 	boolean silent, infinite;
 	Map<UUID, Integer> contributors = new HashMap<UUID, Integer>();
 	
-	// No owner, no type
 	public Booster(double multiplier, boolean silent, boolean infinite) {
 		this(BoosterType.MONETARY, multiplier, silent, infinite);
 	}
 	
-	// No owner 
 	@SuppressWarnings("deprecation")
 	public Booster(BoosterType type, double multiplier, boolean silent, boolean infinite) {
 		this.type = type;
@@ -59,13 +57,11 @@ public class Booster {
 		active.add(this);
 	}
 	
-	// No type // Old - owner String
 	@Deprecated
 	public Booster(String owner, double multiplier, int minutes) {
 		this(BoosterType.MONETARY, owner, multiplier, minutes);
 	}
 	
-	// Old - owner String
 	@Deprecated // TODO - undeprecate, this is just a reminder (?)
 	public Booster(BoosterType type, String owner, double multiplier, int minutes) {
 		this(type, Bukkit.getOfflinePlayer(owner).getUniqueId(), multiplier, minutes);
@@ -82,7 +78,7 @@ public class Booster {
 		
 		contributors.put(owner, minutes);
 	}
-	// TODO - convert from old PlayerName - DONE, test pls
+
 	@SuppressWarnings("deprecation")
 	public Booster(int id) throws ParseException {
 		active.add(this);
@@ -99,7 +95,7 @@ public class Booster {
 		this.multiplier = (Double) cfg.getValue("multiplier");
 		
 		try {
-			this.owner = cfg.getUUID("owner"); // TODO - convert from old PlayerName - DONE, test pls
+			this.owner = cfg.getUUID("owner");
 		} catch (IllegalArgumentException x) {
 			this.owner = Bukkit.getOfflinePlayer(cfg.getString("owner")).getUniqueId();
 			cfg.setValue("owner", this.owner.toString());
@@ -109,7 +105,7 @@ public class Booster {
 		this.timeout = new SimpleDateFormat("yyyy-MM-dd-HH-mm").parse(cfg.getString("timeout"));
 		this.silent= false;
 		this.infinite = false;
-		// TODO - convert from old PlayerName - DONE, test pls
+		
 		if (cfg.contains("contributors." + owner)) {
 			for (String key: cfg.getKeys("contributors")) {
 				try {
@@ -201,7 +197,7 @@ public class Booster {
 			if (this instanceof PrivateBooster) 
 				if (Bukkit.getPlayer(getOwnerId()) != null) QuickSell.local.sendTranslation(Bukkit.getPlayer(getOwnerId()), "pbooster.deactivate." + type.toString(), false, new Variable("%time%", String.valueOf(this.getDuration())), new Variable("%multiplier%", String.valueOf(this.getMultiplier())));
 			else {
-				for (String message: QuickSell.local.getTranslation("booster.deactivate." + type.toString())) { // TODO - this one is k
+				for (String message: QuickSell.local.getTranslation("booster.deactivate." + type.toString())) {
 					Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', message.replace("%player%", this.getOwner()).replace("%time%", String.valueOf(this.getDuration())).replace("%multiplier%", String.valueOf(this.getMultiplier()))));
 				}
 			}
