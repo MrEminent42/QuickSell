@@ -681,7 +681,7 @@ public class ShopEditor implements Listener {
 			}
 		}
 		
-		menu.build().open(p);
+		menu.open(p);
 	}
 
 }

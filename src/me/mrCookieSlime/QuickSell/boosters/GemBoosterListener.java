@@ -19,7 +19,7 @@ public class GemBoosterListener implements Listener {
 		Player p = e.getPlayer();
 		int gems = e.getAmount();
 		
-		for (Booster booster: Booster.getBoosters(p.getName())) {
+		for (Booster booster: Booster.getBoosters(p.getUniqueId())) {
 			if (booster.getType().equals(BoosterType.PRISONGEMS)) {
 				if (!booster.isSilent()) booster.sendMessage(p, new Variable("{GEMS}", String.valueOf((int)(gems * (booster.getMultiplier() - 1.0)))));
 				gems = (int) (gems + gems * (booster.getMultiplier() - 1));

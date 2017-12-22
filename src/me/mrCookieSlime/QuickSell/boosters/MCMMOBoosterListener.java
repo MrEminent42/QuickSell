@@ -19,7 +19,7 @@ public class MCMMOBoosterListener implements Listener {
 	public void onXPGain(McMMOPlayerXpGainEvent e) {
 		Player p = e.getPlayer();
 		float xp = e.getRawXpGained();
-		for (Booster booster: Booster.getBoosters(p.getName())) {
+		for (Booster booster: Booster.getBoosters(p.getUniqueId())) {
 			if (booster.getType().equals(BoosterType.EXP)) {
 				if (!booster.isSilent()) booster.sendMessage(p, new Variable("{XP}", String.valueOf((float)(xp * (booster.getMultiplier() - 1.0)))));
 				xp = (float) (xp + xp * (booster.getMultiplier() - 1));

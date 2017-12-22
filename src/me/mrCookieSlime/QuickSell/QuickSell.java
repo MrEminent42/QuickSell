@@ -9,6 +9,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.java.JavaPlugin;
+
 import me.mrCookieSlime.CSCoreLibPlugin.PluginUtils;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Localization;
@@ -25,16 +35,8 @@ import me.mrCookieSlime.QuickSell.boosters.PrivateBooster;
 import me.mrCookieSlime.QuickSell.boosters.XPBoosterListener;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
+import net.md_5.bungee.api.ChatColor;
 import net.milkbowl.vault.economy.Economy;
-
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.RegisteredServiceProvider;
-import org.bukkit.plugin.java.JavaPlugin;
 
 public class QuickSell extends JavaPlugin {
 
@@ -344,58 +346,63 @@ public class QuickSell extends JavaPlugin {
 				sender.sendMessage("This Command is only for Players");
 		} else if (cmd.getName().equalsIgnoreCase("booster")) {
 			if (args.length == 4) {
-				
+
 				try {
-				
-				BoosterType type = args[0].equalsIgnoreCase("all") ? null : BoosterType.valueOf(args[0].toUpperCase());
-				if ((type != null || args[0].equalsIgnoreCase("all"))
-						&& (sender instanceof ConsoleCommandSender || sender.hasPermission("QuickSell.booster"))) {
-					try {
-						if (type != null) {
-							Booster booster = new Booster(type, args[1], Double.valueOf(args[2]),
-									Integer.parseInt(args[3]));
-							booster.activate();
-						} else {
-							for (BoosterType bt : BoosterType.values()) {
-								switch (bt) {
-								case CASINO:
-									break;
-								case MCMMO: {
-									if (isMCMMOInstalled()) {
-										Booster booster = new Booster(bt, args[1], Double.valueOf(args[2]),
-												Integer.parseInt(args[3]));
-										booster.activate();
-									}
-									break;
-								}
-								case PRISONGEMS: {
-									if (isPrisonGemsInstalled()) {
-										Booster booster = new Booster(bt, args[1], Double.valueOf(args[2]),
-												Integer.parseInt(args[3]));
-										booster.activate();
-									}
-									break;
-								}
-								default: {
-									Booster booster = new Booster(bt, args[1], Double.valueOf(args[2]),
-											Integer.parseInt(args[3]));
+
+					BoosterType type = args[0].equalsIgnoreCase("all") ? null
+							: BoosterType.valueOf(args[0].toUpperCase());
+					if ((type != null || args[0].equalsIgnoreCase("all"))
+							&& (sender instanceof ConsoleCommandSender || sender.hasPermission("QuickSell.booster"))) {
+
+						@SuppressWarnings("deprecation")
+						OfflinePlayer p = Bukkit.getServer().getOfflinePlayer(args[1]);
+
+						if (p.hasPlayedBefore()) {
+							try {
+								if (type != null) {
+									Booster booster = new Booster(type, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
 									booster.activate();
-									break;
+								} else {
+									for (BoosterType bt : BoosterType.values()) {
+										switch (bt) {
+										case CASINO:
+											break;
+										case MCMMO: {
+											if (isMCMMOInstalled()) {
+												Booster booster = new Booster(bt, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
+												booster.activate();
+											}
+											break;
+										}
+										case PRISONGEMS: {
+											if (isPrisonGemsInstalled()) {
+												Booster booster = new Booster(bt, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
+												booster.activate();
+											}
+											break;
+										}
+										default: {
+											Booster booster = new Booster(bt, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
+											booster.activate();
+											break;
+										}
+										}
+									}
 								}
-								}
+							} catch (NumberFormatException x) {
+								sender.sendMessage(
+										"§4Usage: §c/booster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> <Multiplier> <Duration in Minutes>");
 							}
+						} else {
+							sender.sendMessage("Player " + p.getName() + " hasn't played before!");
 						}
-					} catch (NumberFormatException x) {
-						sender.sendMessage(
-								"§4Usage: §c/booster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> <Multiplier> <Duration in Minutes>");
-					}
-				} else
-					local.sendTranslation(sender, "commands.booster.permission", false);
+					} else
+						local.sendTranslation(sender, "commands.booster.permission", false);
 				} catch (IllegalArgumentException x) {
 					sender.sendMessage(
 							"§4Usage: §c/booster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> <Multiplier> <Duration in Minutes>");
 				}
-				
+
 			} else
 				sender.sendMessage(
 						"§4Usage: §c/booster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> <Multiplier> <Duration in Minutes>");
@@ -406,44 +413,51 @@ public class QuickSell extends JavaPlugin {
 							: BoosterType.valueOf(args[0].toUpperCase());
 					if ((type != null || args[0].equalsIgnoreCase("all"))
 							&& (sender instanceof ConsoleCommandSender || sender.hasPermission("QuickSell.booster"))) {
-						try {
-							if (type != null) {
-								PrivateBooster booster = new PrivateBooster(type, args[1], Double.valueOf(args[2]),
-										Integer.parseInt(args[3]));
-								booster.activate();
-							} else {
-								for (BoosterType bt : BoosterType.values()) {
-									switch (bt) {
-									case CASINO:
-										break;
-									case MCMMO: {
-										if (isMCMMOInstalled()) {
-											PrivateBooster booster = new PrivateBooster(bt, args[1],
-													Double.valueOf(args[2]), Integer.parseInt(args[3]));
-											booster.activate();
+
+						@SuppressWarnings("deprecation")
+						OfflinePlayer p = Bukkit.getServer().getOfflinePlayer(args[1]);
+						
+						if (p.hasPlayedBefore()) {
+							try {
+								if (type != null) {
+									@SuppressWarnings("deprecation")
+									PrivateBooster booster = new PrivateBooster(type,
+											Bukkit.getOfflinePlayer(args[1]).getUniqueId(), Double.valueOf(args[2]),
+											Integer.parseInt(args[3]));
+									booster.activate();
+								} else {
+									for (BoosterType bt : BoosterType.values()) {
+										switch (bt) {
+										case CASINO:
+											break;
+										case MCMMO: {
+											if (isMCMMOInstalled()) {
+												PrivateBooster booster = new PrivateBooster(bt, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
+												booster.activate();
+											}
+											break;
 										}
-										break;
-									}
-									case PRISONGEMS: {
-										if (isPrisonGemsInstalled()) {
-											PrivateBooster booster = new PrivateBooster(bt, args[1],
-													Double.valueOf(args[2]), Integer.parseInt(args[3]));
-											booster.activate();
+										case PRISONGEMS: {
+											if (isPrisonGemsInstalled()) {
+												PrivateBooster booster = new PrivateBooster(bt, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
+												booster.activate();
+											}
+											break;
 										}
-										break;
-									}
-									default: {
-										PrivateBooster booster = new PrivateBooster(bt, args[1],
-												Double.valueOf(args[2]), Integer.parseInt(args[3]));
-										booster.activate();
-										break;
-									}
+										default: {
+											PrivateBooster booster = new PrivateBooster(bt, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
+											booster.activate();
+											break;
+										}
+										}
 									}
 								}
+							} catch (NumberFormatException x) {
+								sender.sendMessage(
+										"§4Usage: §c/pbooster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> <Multiplier> <Duration in Minutes>");
 							}
-						} catch (NumberFormatException x) {
-							sender.sendMessage(
-									"§4Usage: §c/pbooster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> <Multiplier> <Duration in Minutes>");
+						} else {
+							sender.sendMessage(ChatColor.RED + "Player " + p.getName() + " hasn't played before!");
 						}
 					} else
 						local.sendTranslation(sender, "commands.booster.permission", false);
@@ -546,8 +560,8 @@ public class QuickSell extends JavaPlugin {
 							else {
 								npcs.setValue(String.valueOf(npc.getId()), args[1] + " ; " + args[2].toUpperCase());
 								npcs.save();
-								sender.sendMessage(npc.getName() + " §7is now a Remote §r"
-										+ StringUtils.format(args[2]) + "§7Shop for the Shop §r" + args[1] + "§7");
+								sender.sendMessage(npc.getName() + " §7is now a Remote §r" + StringUtils.format(args[2])
+										+ "§7Shop for the Shop §r" + args[1] + "§7");
 							}
 						} else
 							local.sendTranslation(sender, "commands.usage", false,
@@ -572,7 +586,7 @@ public class QuickSell extends JavaPlugin {
 							Iterator<Booster> boosters = Booster.iterate();
 							while (boosters.hasNext()) {
 								Booster booster = boosters.next();
-								if (booster.getAppliedPlayers().contains(args[1])) {
+								if (booster.getAppliedIds().contains(Bukkit.getOfflinePlayer(args[1]).getUniqueId())) {
 									boosters.remove();
 									booster.deactivate();
 								}

@@ -155,9 +155,9 @@ public class SellListener implements Listener {
 					}
 					
 					money = DoubleHandler.fixDouble(money, 2);
-					
+					// TODO - fix stacking issues
 					if (money > 0.0) {
-						for (Booster booster: Booster.getBoosters(p.getName(), BoosterType.MONETARY)) {
+						for (Booster booster: Booster.getBoosters(p.getUniqueId(), BoosterType.MONETARY)) {
 							money = money + money * (booster.getMultiplier() - 1);
 						}
 					}

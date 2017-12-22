@@ -18,7 +18,7 @@ public class XPBoosterListener implements Listener {
 	public void onXPGain(PlayerExpChangeEvent e) {
 		Player p = e.getPlayer();
 		int xp = e.getAmount();
-		for (Booster booster: Booster.getBoosters(p.getName())) {
+		for (Booster booster: Booster.getBoosters(p.getUniqueId())) {
 			if (booster.getType().equals(BoosterType.EXP)) {
 				if (!booster.isSilent()) booster.sendMessage(p, new Variable("{XP}", String.valueOf((float)(xp * (booster.getMultiplier() - 1.0)))));
 				xp = (int) (xp + xp * (booster.getMultiplier() - 1));

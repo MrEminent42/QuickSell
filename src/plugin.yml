@@ -1,5 +1,5 @@
 name: QuickSell
-version: 2.0.8
+version: 2.1
 authors: [mrCookieSlime, PixelSquared]
 website: http://mrcookieslime.github.io/
 depend: [Vault]

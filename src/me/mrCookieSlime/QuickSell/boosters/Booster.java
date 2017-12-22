@@ -9,6 +9,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Variable;
@@ -19,10 +24,6 @@ import me.mrCookieSlime.CSCoreLibPlugin.general.Chat.TellRawMessage.HoverAction;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Math.DoubleHandler;
 import me.mrCookieSlime.QuickSell.QuickSell;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
-
 public class Booster {
 	
 	public static List<Booster> active = new ArrayList<Booster>();
@@ -30,17 +31,20 @@ public class Booster {
 	BoosterType type;
 	int id;
 	int minutes;
-	public String owner;
+	public UUID owner;
 	double multiplier;
 	Date timeout;
 	Config cfg;
 	boolean silent, infinite;
-	Map<String, Integer> contributors = new HashMap<String, Integer>();
+	Map<UUID, Integer> contributors = new HashMap<UUID, Integer>();
 	
+	// No owner, no type
 	public Booster(double multiplier, boolean silent, boolean infinite) {
 		this(BoosterType.MONETARY, multiplier, silent, infinite);
 	}
 	
+	// No owner 
+	@SuppressWarnings("deprecation")
 	public Booster(BoosterType type, double multiplier, boolean silent, boolean infinite) {
 		this.type = type;
 		this.multiplier = multiplier;
@@ -50,16 +54,24 @@ public class Booster {
 			this.minutes = Integer.MAX_VALUE;
 			this.timeout = new Date(System.currentTimeMillis() + 365 * 24 * 60 * 60 * 1000);
 		}
-		this.owner = "INTERNAL";
+		this.owner = Bukkit.getOfflinePlayer("internal").getUniqueId();
 		
 		active.add(this);
 	}
 	
+	// No type // Old - owner String
+	@Deprecated
 	public Booster(String owner, double multiplier, int minutes) {
 		this(BoosterType.MONETARY, owner, multiplier, minutes);
 	}
 	
+	// Old - owner String
+	@Deprecated // TODO - undeprecate, this is just a reminder (?)
 	public Booster(BoosterType type, String owner, double multiplier, int minutes) {
+		this(type, Bukkit.getOfflinePlayer(owner).getUniqueId(), multiplier, minutes);
+	}
+	
+	public Booster(BoosterType type, UUID owner, double multiplier, int minutes) {
 		this.type = type;
 		this.minutes = minutes;
 		this.multiplier = multiplier;
@@ -70,7 +82,8 @@ public class Booster {
 		
 		contributors.put(owner, minutes);
 	}
-	
+	// TODO - convert from old PlayerName - DONE, test pls
+	@SuppressWarnings("deprecation")
 	public Booster(int id) throws ParseException {
 		active.add(this);
 		this.id = id;
@@ -84,14 +97,30 @@ public class Booster {
 		
 		this.minutes = cfg.getInt("minutes");
 		this.multiplier = (Double) cfg.getValue("multiplier");
-		this.owner = cfg.getString("owner");
+		
+		try {
+			this.owner = cfg.getUUID("owner"); // TODO - convert from old PlayerName - DONE, test pls
+		} catch (IllegalArgumentException x) {
+			this.owner = Bukkit.getOfflinePlayer(cfg.getString("owner")).getUniqueId();
+			cfg.setValue("owner", this.owner.toString());
+			cfg.save();
+		}
+		
 		this.timeout = new SimpleDateFormat("yyyy-MM-dd-HH-mm").parse(cfg.getString("timeout"));
 		this.silent= false;
 		this.infinite = false;
-		
+		// TODO - convert from old PlayerName - DONE, test pls
 		if (cfg.contains("contributors." + owner)) {
 			for (String key: cfg.getKeys("contributors")) {
-				contributors.put(key, cfg.getInt("contributors." + key));
+				try {
+					contributors.put(UUID.fromString(key), cfg.getInt("contributors." + key));
+				} catch (IllegalArgumentException x) {
+					UUID cid = Bukkit.getOfflinePlayer(key).getUniqueId();
+					contributors.put(cid, cfg.getInt("contributors." + key));
+					cfg.setValue("contributors." + cid, contributors.get(cid));
+					cfg.setValue("contributors." + key, null);
+					cfg.save();
+				}
 			}
 		}
 		else {
@@ -101,14 +130,13 @@ public class Booster {
 	}
 	
 	private void writeContributors() {
-		for (Map.Entry<String, Integer> entry: contributors.entrySet()) {
+		for (Map.Entry<UUID, Integer> entry: contributors.entrySet()) {
 			cfg.setValue("contributors." + entry.getKey(), entry.getValue());
 		}
 		
 		cfg.save();
 	}
 
-	@SuppressWarnings("deprecation")
 	public void activate() {
 		if (QuickSell.cfg.getBoolean("boosters.extension-mode")) {
 			for (Booster booster: active) {
@@ -116,7 +144,7 @@ public class Booster {
 					if ((this instanceof PrivateBooster && booster instanceof PrivateBooster) || (!(this instanceof PrivateBooster) && !(booster instanceof PrivateBooster))) {
 						booster.extend(this);
 						if (!silent) {
-							if (this instanceof PrivateBooster && Bukkit.getPlayer(getOwner()) != null) QuickSell.local.sendTranslation(Bukkit.getPlayer(getOwner()), "pbooster.extended." + type.toString(), false, new Variable("%time%", String.valueOf(this.getDuration())), new Variable("%multiplier%", String.valueOf(this.getMultiplier())));
+							if (this instanceof PrivateBooster && Bukkit.getPlayer(getOwnerId()) != null) QuickSell.local.sendTranslation(Bukkit.getPlayer(getOwnerId()), "pbooster.extended." + type.toString(), false, new Variable("%time%", String.valueOf(this.getDuration())), new Variable("%multiplier%", String.valueOf(this.getMultiplier())));
 							else {
 								for (String message: QuickSell.local.getTranslation("booster.extended." + type.toString())) {
 									Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', message.replace("%player%", this.getOwner()).replace("%time%", String.valueOf(this.getDuration())).replace("%multiplier%", String.valueOf(this.getMultiplier()))));
@@ -138,7 +166,7 @@ public class Booster {
 			}
 			this.cfg = new Config(new File("data-storage/QuickSell/boosters/" + id + ".booster"));
 			cfg.setValue("type", type.toString());
-			cfg.setValue("owner", getOwner());
+			cfg.setValue("owner", getOwnerId());
 			cfg.setValue("multiplier", multiplier);
 			cfg.setValue("minutes", minutes);
 			cfg.setValue("timeout", new SimpleDateFormat("yyyy-MM-dd-HH-mm").format(timeout));
@@ -157,25 +185,23 @@ public class Booster {
 			}
 		}
 	}
-	
+	// TODO - fix
 	public void extend(Booster booster) {
 		addTime(booster.getDuration());
 		
-		int minutes = contributors.containsKey(booster.getOwner()) ? contributors.get(booster.getOwner()): 0;
+		int minutes = contributors.containsKey(booster.getOwnerId()) ? contributors.get(booster.getOwnerId()): 0;
 		minutes = minutes + booster.getDuration();
-		contributors.put(booster.getOwner(), minutes);
+		contributors.put(booster.getOwnerId(), minutes);
 		
 		writeContributors();
 	}
 
-	@SuppressWarnings("deprecation")
 	public void deactivate() {
 		if (!silent) {
-			if (this instanceof PrivateBooster) {
-				if (Bukkit.getPlayer(getOwner()) != null) QuickSell.local.sendTranslation(Bukkit.getPlayer(getOwner()), "pbooster.deactivate." + type.toString(), false, new Variable("%time%", String.valueOf(this.getDuration())), new Variable("%multiplier%", String.valueOf(this.getMultiplier())));
-			}
+			if (this instanceof PrivateBooster) 
+				if (Bukkit.getPlayer(getOwnerId()) != null) QuickSell.local.sendTranslation(Bukkit.getPlayer(getOwnerId()), "pbooster.deactivate." + type.toString(), false, new Variable("%time%", String.valueOf(this.getDuration())), new Variable("%multiplier%", String.valueOf(this.getMultiplier())));
 			else {
-				for (String message: QuickSell.local.getTranslation("booster.deactivate." + type.toString())) {
+				for (String message: QuickSell.local.getTranslation("booster.deactivate." + type.toString())) { // TODO - this one is k
 					Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', message.replace("%player%", this.getOwner()).replace("%time%", String.valueOf(this.getDuration())).replace("%multiplier%", String.valueOf(this.getMultiplier()))));
 				}
 			}
@@ -188,7 +214,12 @@ public class Booster {
 		return active.iterator();
 	}
 	
+	@Deprecated //TODO - undeprecate, this is just a reminder;
 	public String getOwner() {
+		return Bukkit.getOfflinePlayer(this.owner).getName();
+	}
+	
+	public UUID getOwnerId() {
 		return this.owner;
 	}
 	
@@ -224,6 +255,7 @@ public class Booster {
 		return getMultiplier(p, BoosterType.MONETARY);
 	}
 	
+	@Deprecated 
 	public static List<Booster> getBoosters(String player) {
 		update();
 		List<Booster> boosters = new ArrayList<Booster>();
@@ -234,22 +266,49 @@ public class Booster {
 		return boosters;
 	}
 	
-	public static List<Booster> getBoosters(String player, BoosterType type) {
+	public static List<Booster> getBoosters(UUID id) {
 		update();
 		List<Booster> boosters = new ArrayList<Booster>();
 		
-		for (Booster booster: active) {
-			if (booster.getAppliedPlayers().contains(player) && booster.getType().equals(type)) boosters.add(booster);
+		for (Booster booster : active) {
+			if (booster.getAppliedIds().contains(id)) boosters.add(booster);
 		}
+		
 		return boosters;
 	}
 	
+	@Deprecated
+	public static List<Booster> getBoosters(String player, BoosterType type) {
+		return Booster.getBoosters(Bukkit.getOfflinePlayer(player).getUniqueId(), type);
+	}
+	
+	public static List<Booster> getBoosters(UUID id, BoosterType type) {
+		update();
+		List<Booster> boosters = new ArrayList<Booster>();
+		
+		for (Booster booster : active) {
+			if (booster.getAppliedIds().contains(id) && booster.getType().equals(type)) boosters.add(booster);
+		}
+		
+		return boosters;
+	}
+	
+	@Deprecated 
 	public List<String> getAppliedPlayers() {
 		List<String> players = new ArrayList<String>();
 		for (Player p: Bukkit.getOnlinePlayers()) {
 			players.add(p.getName());
 		}
 		return players;
+	}
+	
+	public List<UUID> getAppliedIds() {
+		List<UUID> players = new ArrayList<UUID>();
+		for (Player p: Bukkit.getOnlinePlayers()) {
+			players.add(p.getUniqueId());
+		}
+		return players;
+		
 	}
 	
 	public String getMessage() {
@@ -287,13 +346,23 @@ public class Booster {
 			return "Booster";
 		}
 	}
-
+	
+	@Deprecated // ?
 	public static double getMultiplier(String name, BoosterType type) {
 		double multiplier = 1.0;
 		for (Booster booster: getBoosters(name, type)) {
 			multiplier = multiplier * booster.getMultiplier();
 		}
 		return DoubleHandler.fixDouble(multiplier, 2);
+	}
+	
+	public static double getMultiplier(UUID id, BoosterType type) {
+		double multi = 1.0;
+		for (Booster booster : getBoosters(id, type)) {
+			multi = multi * booster.getMultiplier();
+		}
+		
+		return DoubleHandler.fixDouble(multi, 2);
 	}
 	
 	public boolean isPrivate() {
@@ -304,7 +373,7 @@ public class Booster {
 		return this.infinite;
 	}
 
-	public Map<String, Integer> getContributors() {
+	public Map<UUID, Integer> getContributors() {
 		return this.contributors;
 	}
 	

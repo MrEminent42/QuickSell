@@ -182,17 +182,17 @@ public class Shop {
 		}
 		PlayerInventory.update(p);
 	}
-	
+	// TODO - fix stacking issues
 	public double handoutReward(Player p, double totalmoney, int items, boolean silent) {
 		double money = totalmoney;
 		if (!silent) QuickSell.local.sendTranslation(p, "messages.sell", false, new Variable("{MONEY}", DoubleHandler.getFancyDouble(money)), new Variable("{ITEMS}", String.valueOf(items)));
-		for (Booster booster: Booster.getBoosters(p.getName())) {
+		for (Booster booster: Booster.getBoosters(p.getUniqueId())) {
 			if (booster.getType().equals(BoosterType.MONETARY)) {
 				if (!silent) booster.sendMessage(p, new Variable("{MONEY}", DoubleHandler.getFancyDouble(money * (booster.getMultiplier() - 1))));
 				money = money + money * (booster.getMultiplier() - 1);
 			}
 		}
-		if (!silent && !Booster.getBoosters(p.getName()).isEmpty()) QuickSell.local.sendTranslation(p, "messages.total", false, new Variable("{MONEY}", DoubleHandler.getFancyDouble(money)));
+		if (!silent && !Booster.getBoosters(p.getUniqueId()).isEmpty()) QuickSell.local.sendTranslation(p, "messages.total", false, new Variable("{MONEY}", DoubleHandler.getFancyDouble(money)));
 		money = DoubleHandler.fixDouble(money, 2);
 		QuickSell.economy.depositPlayer(p, money);
 		return money;
