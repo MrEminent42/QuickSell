@@ -53,8 +53,6 @@ public class Booster {
 			this.timeout = new Date(System.currentTimeMillis() + 365 * 24 * 60 * 60 * 1000);
 		}
 		this.owner = Bukkit.getOfflinePlayer("internal").getUniqueId();
-		
-		active.add(this);
 	}
 	
 	@Deprecated
@@ -62,7 +60,7 @@ public class Booster {
 		this(BoosterType.MONETARY, owner, multiplier, minutes);
 	}
 	
-	@Deprecated // TODO - undeprecate, this is just a reminder (?)
+	@Deprecated
 	public Booster(BoosterType type, String owner, double multiplier, int minutes) {
 		this(type, Bukkit.getOfflinePlayer(owner).getUniqueId(), multiplier, minutes);
 	}
@@ -210,7 +208,6 @@ public class Booster {
 		return active.iterator();
 	}
 	
-	@Deprecated //TODO - undeprecate, this is just a reminder;
 	public String getOwner() {
 		return Bukkit.getOfflinePlayer(this.owner).getName();
 	}
@@ -343,7 +340,7 @@ public class Booster {
 		}
 	}
 	
-	@Deprecated // ?
+	@Deprecated
 	public static double getMultiplier(String name, BoosterType type) {
 		double multiplier = 1.0;
 		for (Booster booster: getBoosters(name, type)) {
