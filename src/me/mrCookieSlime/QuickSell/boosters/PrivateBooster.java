@@ -28,8 +28,13 @@ public class PrivateBooster extends Booster {
 	}
 	
 	@Override
+	@Deprecated
 	public List<String> getAppliedPlayers() {
 		return Arrays.asList(Bukkit.getOfflinePlayer(this.owner).getName());
+	}
+	
+	public List<UUID> getAppliedIds() {
+		return Arrays.asList(this.owner);
 	}
 	
 	@Override
