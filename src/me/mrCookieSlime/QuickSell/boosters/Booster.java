@@ -140,10 +140,17 @@ public class Booster {
 					if ((this instanceof PrivateBooster && booster instanceof PrivateBooster) || (!(this instanceof PrivateBooster) && !(booster instanceof PrivateBooster))) {
 						booster.extend(this);
 						if (!silent) {
-							if (this instanceof PrivateBooster && Bukkit.getPlayer(getOwnerId()) != null) QuickSell.local.sendTranslation(Bukkit.getPlayer(getOwnerId()), "pbooster.extended." + type.toString(), false, new Variable("%time%", String.valueOf(this.getDuration())), new Variable("%multiplier%", String.valueOf(this.getMultiplier())));
-							else {
+							if (this instanceof PrivateBooster && Bukkit.getPlayer(getOwnerId()) != null) {
+								QuickSell.local.sendTranslation(Bukkit.getPlayer(getOwnerId()),
+										"pbooster.extended." + type.toString(), false,
+										new Variable("%time%", String.valueOf(this.getDuration())),
+										new Variable("%multiplier%", QuickSell.cfg.getBoolean("boosters.use-percent-logic") ? QuickSell.toPercent(this.getMultiplier()) : String.valueOf(this.getMultiplier())));
+							} else {
 								for (String message: QuickSell.local.getTranslation("booster.extended." + type.toString())) {
-									Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', message.replace("%player%", this.getOwner()).replace("%time%", String.valueOf(this.getDuration())).replace("%multiplier%", String.valueOf(this.getMultiplier()))));
+									Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&',
+											message.replace("%player%", this.getOwner())
+													.replace("%time%", String.valueOf(this.getDuration()))
+													.replace("%multiplier%", QuickSell.cfg.getBoolean("boosters.use-percent-logic") ? QuickSell.toPercent(this.getMultiplier()) : String.valueOf(this.getMultiplier()))));
 								}
 							}
 						}
@@ -173,15 +180,21 @@ public class Booster {
 		
 		active.add(this);
 		if (!silent) {
-			if (this instanceof PrivateBooster && Bukkit.getPlayer(getOwner()) != null) QuickSell.local.sendTranslation(Bukkit.getPlayer(getOwner()), "pbooster.activate." + type.toString(), false, new Variable("%time%", String.valueOf(this.getDuration())), new Variable("%multiplier%", String.valueOf(this.getMultiplier())));
+			if (this instanceof PrivateBooster && Bukkit.getPlayer(getOwner()) != null)
+				QuickSell.local.sendTranslation(Bukkit.getPlayer(getOwner()), "pbooster.activate." + type.toString(),
+						false, new Variable("%time%", String.valueOf(this.getDuration())),
+						new Variable("%multiplier%", QuickSell.cfg.getBoolean("boosters.use-percent-logic") ? QuickSell.toPercent(this.getMultiplier()) : String.valueOf(this.getMultiplier())));
 			else {
 				for (String message: QuickSell.local.getTranslation("booster.activate." + type.toString())) {
-					Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', message.replace("%player%", this.getOwner()).replace("%time%", String.valueOf(this.getDuration())).replace("%multiplier%", String.valueOf(this.getMultiplier()))));
+					Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&',
+							message.replace("%player%", this.getOwner())
+									.replace("%time%", String.valueOf(this.getDuration()))
+									.replace("%multiplier%", QuickSell.cfg.getBoolean("boosters.use-percent-logic") ? QuickSell.toPercent(this.getMultiplier()) : String.valueOf(this.getMultiplier()))));
 				}
 			}
 		}
 	}
-	// TODO - fix
+	// TODO - fix (?)
 	public void extend(Booster booster) {
 		addTime(booster.getDuration());
 		
@@ -194,12 +207,19 @@ public class Booster {
 
 	public void deactivate() {
 		if (!silent) {
-			if (this instanceof PrivateBooster) 
-				if (Bukkit.getPlayer(getOwnerId()) != null) QuickSell.local.sendTranslation(Bukkit.getPlayer(getOwnerId()), "pbooster.deactivate." + type.toString(), false, new Variable("%time%", String.valueOf(this.getDuration())), new Variable("%multiplier%", String.valueOf(this.getMultiplier())));
-			else {
+			if (this instanceof PrivateBooster) {
+				if (Bukkit.getPlayer(getOwnerId()) != null)
+					QuickSell.local.sendTranslation(Bukkit.getPlayer(getOwnerId()),
+							"pbooster.deactivate." + type.toString(), false,
+							new Variable("%time%", String.valueOf(this.getDuration())),
+							new Variable("%multiplier%", QuickSell.cfg.getBoolean("boosters.use-percent-logic") ? QuickSell.toPercent(this.getMultiplier()) : String.valueOf(this.getMultiplier())));
+			} else {
 				for (String message: QuickSell.local.getTranslation("booster.deactivate." + type.toString())) {
-					Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', message.replace("%player%", this.getOwner()).replace("%time%", String.valueOf(this.getDuration())).replace("%multiplier%", String.valueOf(this.getMultiplier()))));
-				}
+						Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&',
+								message.replace("%player%", this.getOwner())
+										.replace("%time%", String.valueOf(this.getDuration()))
+										.replace("%multiplier%", QuickSell.cfg.getBoolean("boosters.use-percent-logic") ? QuickSell.toPercent(this.getMultiplier()) : String.valueOf(this.getMultiplier()))));
+					}
 			}
 		}
 		if (!infinite) new File("data-storage/QuickSell/boosters/" + getID() + ".booster").delete();
@@ -210,7 +230,6 @@ public class Booster {
 		return active.iterator();
 	}
 	
-	@Deprecated //TODO - undeprecate, this is just a reminder;
 	public String getOwner() {
 		return Bukkit.getOfflinePlayer(this.owner).getName();
 	}
