@@ -357,11 +357,13 @@ public class QuickSell extends JavaPlugin {
 
 						@SuppressWarnings("deprecation")
 						OfflinePlayer p = Bukkit.getServer().getOfflinePlayer(args[1]);
+						
+						double multiplier = (cfg.getBoolean("boosters.use-percent-logic") ? parsePercent(args[2]) : Double.valueOf(args[2]));
 
 						if (p.hasPlayedBefore()) {
 							try {
 								if (type != null) {
-									Booster booster = new Booster(type, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
+									Booster booster = new Booster(type, p.getUniqueId(), multiplier, Integer.parseInt(args[3]));
 									booster.activate();
 								} else {
 									for (BoosterType bt : BoosterType.values()) {
@@ -370,20 +372,20 @@ public class QuickSell extends JavaPlugin {
 											break;
 										case MCMMO: {
 											if (isMCMMOInstalled()) {
-												Booster booster = new Booster(bt, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
+												Booster booster = new Booster(bt, p.getUniqueId(), multiplier, Integer.parseInt(args[3]));
 												booster.activate();
 											}
 											break;
 										}
 										case PRISONGEMS: {
 											if (isPrisonGemsInstalled()) {
-												Booster booster = new Booster(bt, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
+												Booster booster = new Booster(bt, p.getUniqueId(), multiplier, Integer.parseInt(args[3]));
 												booster.activate();
 											}
 											break;
 										}
 										default: {
-											Booster booster = new Booster(bt, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
+											Booster booster = new Booster(bt, p.getUniqueId(), multiplier, Integer.parseInt(args[3]));
 											booster.activate();
 											break;
 										}
