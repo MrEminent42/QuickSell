@@ -343,22 +343,24 @@ public class Booster {
 		}
 	}
 	
-	@Deprecated // ?
+	@Deprecated
 	public static double getMultiplier(String name, BoosterType type) {
 		double multiplier = 1.0;
 		for (Booster booster: getBoosters(name, type)) {
-			multiplier = multiplier * booster.getMultiplier();
+			if (QuickSell.cfg.getBoolean("boosters.use-percent-logic")) multiplier = multiplier * booster.getMultiplier();
+			else multiplier += booster.getMultiplier();
 		}
 		return DoubleHandler.fixDouble(multiplier, 2);
 	}
 	
 	public static double getMultiplier(UUID id, BoosterType type) {
-		double multi = 1.0;
+		double multiplier = 1.0;
 		for (Booster booster : getBoosters(id, type)) {
-			multi = multi * booster.getMultiplier();
+			if (QuickSell.cfg.getBoolean("boosters.use-percent-logic")) multiplier = multiplier * booster.getMultiplier();
+			else multiplier += booster.getMultiplier();
 		}
 		
-		return DoubleHandler.fixDouble(multi, 2);
+		return DoubleHandler.fixDouble(multiplier, 2);
 	}
 	
 	public boolean isPrivate() {
