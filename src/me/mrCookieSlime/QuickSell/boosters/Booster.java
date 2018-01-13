@@ -347,8 +347,8 @@ public class Booster {
 	public static double getMultiplier(String name, BoosterType type) {
 		double multiplier = 1.0;
 		for (Booster booster: getBoosters(name, type)) {
-			if (QuickSell.cfg.getBoolean("boosters.use-percent-logic")) multiplier = multiplier * booster.getMultiplier();
-			else multiplier += booster.getMultiplier();
+			if (QuickSell.cfg.getBoolean("boosters.use-percent-logic")) multiplier += booster.getMultiplier();
+			else multiplier = multiplier * booster.getMultiplier();
 		}
 		return DoubleHandler.fixDouble(multiplier, 2);
 	}
@@ -356,8 +356,8 @@ public class Booster {
 	public static double getMultiplier(UUID id, BoosterType type) {
 		double multiplier = 1.0;
 		for (Booster booster : getBoosters(id, type)) {
-			if (QuickSell.cfg.getBoolean("boosters.use-percent-logic")) multiplier = multiplier * booster.getMultiplier();
-			else multiplier += booster.getMultiplier();
+			if (QuickSell.cfg.getBoolean("boosters.use-percent-logic")) multiplier += booster.getMultiplier();
+			else multiplier = multiplier * booster.getMultiplier();
 		}
 		
 		return DoubleHandler.fixDouble(multiplier, 2);
@@ -379,7 +379,7 @@ public class Booster {
 		List<String> messages = QuickSell.local.getTranslation(getMessage());
 		if (messages.isEmpty()) return;
 		try {
-			String message = ChatColor.translateAlternateColorCodes('&', messages.get(0).replace("%multiplier%", String.valueOf(this.multiplier)).replace("%minutes%", String.valueOf(this.formatTime())));
+			String message = ChatColor.translateAlternateColorCodes('&', messages.get(0).replace("%multiplier%", (QuickSell.cfg.getBoolean("boosters.use-percent-logic") ? QuickSell.toPercent(this.multiplier) : String.valueOf(this.multiplier)))).replace("%minutes%", String.valueOf(this.formatTime()));
 			for (Variable v: variables) {
 				message = v.apply(message);
 			}
