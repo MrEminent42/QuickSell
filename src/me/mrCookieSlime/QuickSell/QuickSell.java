@@ -23,6 +23,7 @@ import me.mrCookieSlime.CSCoreLibPlugin.PluginUtils;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Localization;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Variable;
+import me.mrCookieSlime.CSCoreLibPlugin.general.Math.DoubleHandler;
 import me.mrCookieSlime.CSCoreLibPlugin.general.String.StringUtils;
 import me.mrCookieSlime.CSCoreLibSetup.CSCoreLibLoader;
 import me.mrCookieSlime.QuickSell.SellEvent.Type;
@@ -344,7 +345,7 @@ public class QuickSell extends JavaPlugin {
 					local.sendTranslation(sender, "commands.prices.permission", false);
 			} else
 				sender.sendMessage("This Command is only for Players");
-		} else if (cmd.getName().equalsIgnoreCase("booster")) {
+		} else if (cmd.getName().equalsIgnoreCase("booster")) { 
 			if (args.length == 4) {
 
 				try {
@@ -356,11 +357,13 @@ public class QuickSell extends JavaPlugin {
 
 						@SuppressWarnings("deprecation")
 						OfflinePlayer p = Bukkit.getServer().getOfflinePlayer(args[1]);
+						
+						double multiplier = (cfg.getBoolean("boosters.use-percent-logic") ? parsePercent(args[2]) : Double.valueOf(args[2]));
 
 						if (p.hasPlayedBefore()) {
 							try {
 								if (type != null) {
-									Booster booster = new Booster(type, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
+									Booster booster = new Booster(type, p.getUniqueId(), multiplier, Integer.parseInt(args[3]));
 									booster.activate();
 								} else {
 									for (BoosterType bt : BoosterType.values()) {
@@ -369,20 +372,20 @@ public class QuickSell extends JavaPlugin {
 											break;
 										case MCMMO: {
 											if (isMCMMOInstalled()) {
-												Booster booster = new Booster(bt, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
+												Booster booster = new Booster(bt, p.getUniqueId(), multiplier, Integer.parseInt(args[3]));
 												booster.activate();
 											}
 											break;
 										}
 										case PRISONGEMS: {
 											if (isPrisonGemsInstalled()) {
-												Booster booster = new Booster(bt, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
+												Booster booster = new Booster(bt, p.getUniqueId(), multiplier, Integer.parseInt(args[3]));
 												booster.activate();
 											}
 											break;
 										}
 										default: {
-											Booster booster = new Booster(bt, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
+											Booster booster = new Booster(bt, p.getUniqueId(), multiplier, Integer.parseInt(args[3]));
 											booster.activate();
 											break;
 										}
@@ -390,8 +393,9 @@ public class QuickSell extends JavaPlugin {
 									}
 								}
 							} catch (NumberFormatException x) {
-								sender.sendMessage(
-										"§4Usage: §c/booster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> <Multiplier> <Duration in Minutes>");
+								sender.sendMessage("§4Usage: §c/booster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> "
+												+ "<" + (cfg.getBoolean("boosters.use-percent-logic") ? "Multiplier %" : "Multiplier") + ">"
+												+ " <Duration in Minutes>");
 							}
 						} else {
 							sender.sendMessage("Player " + p.getName() + " hasn't played before!");
@@ -399,14 +403,16 @@ public class QuickSell extends JavaPlugin {
 					} else
 						local.sendTranslation(sender, "commands.booster.permission", false);
 				} catch (IllegalArgumentException x) {
-					sender.sendMessage(
-							"§4Usage: §c/booster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> <Multiplier> <Duration in Minutes>");
+					sender.sendMessage("§4Usage: §c/booster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> "
+							+ "<" + (cfg.getBoolean("boosters.use-percent-logic") ? "Multiplier %" : "Multiplier") + ">"
+							+ " <Duration in Minutes>");
 				}
 
 			} else
-				sender.sendMessage(
-						"§4Usage: §c/booster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> <Multiplier> <Duration in Minutes>");
-		} else if (cmd.getName().equalsIgnoreCase("pbooster")) {
+				sender.sendMessage("§4Usage: §c/booster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> "
+						+ "<" + (cfg.getBoolean("boosters.use-percent-logic") ? "Multiplier %" : "Multiplier") + ">"
+						+ " <Duration in Minutes>");
+		} else if (cmd.getName().equalsIgnoreCase("pbooster")) { 
 			if (args.length == 4) {
 				try {
 					BoosterType type = args[0].equalsIgnoreCase("all") ? null
@@ -417,12 +423,14 @@ public class QuickSell extends JavaPlugin {
 						@SuppressWarnings("deprecation")
 						OfflinePlayer p = Bukkit.getServer().getOfflinePlayer(args[1]);
 						
+						double multiplier = (cfg.getBoolean("boosters.use-percent-logic") ? parsePercent(args[2]) : Double.valueOf(args[2]));
+
 						if (p.hasPlayedBefore()) {
 							try {
 								if (type != null) {
 									@SuppressWarnings("deprecation")
 									PrivateBooster booster = new PrivateBooster(type,
-											Bukkit.getOfflinePlayer(args[1]).getUniqueId(), Double.valueOf(args[2]),
+											Bukkit.getOfflinePlayer(args[1]).getUniqueId(), multiplier,
 											Integer.parseInt(args[3]));
 									booster.activate();
 								} else {
@@ -432,20 +440,20 @@ public class QuickSell extends JavaPlugin {
 											break;
 										case MCMMO: {
 											if (isMCMMOInstalled()) {
-												PrivateBooster booster = new PrivateBooster(bt, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
+												PrivateBooster booster = new PrivateBooster(bt, p.getUniqueId(), multiplier, Integer.parseInt(args[3]));
 												booster.activate();
 											}
 											break;
 										}
 										case PRISONGEMS: {
 											if (isPrisonGemsInstalled()) {
-												PrivateBooster booster = new PrivateBooster(bt, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
+												PrivateBooster booster = new PrivateBooster(bt, p.getUniqueId(), multiplier, Integer.parseInt(args[3]));
 												booster.activate();
 											}
 											break;
 										}
 										default: {
-											PrivateBooster booster = new PrivateBooster(bt, p.getUniqueId(), Double.valueOf(args[2]), Integer.parseInt(args[3]));
+											PrivateBooster booster = new PrivateBooster(bt, p.getUniqueId(), multiplier, Integer.parseInt(args[3]));
 											booster.activate();
 											break;
 										}
@@ -453,8 +461,9 @@ public class QuickSell extends JavaPlugin {
 									}
 								}
 							} catch (NumberFormatException x) {
-								sender.sendMessage(
-										"§4Usage: §c/pbooster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> <Multiplier> <Duration in Minutes>");
+								sender.sendMessage("§4Usage: §c/pbooster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> "
+										+ "<" + (cfg.getBoolean("boosters.use-percent-logic") ? "Multiplier %" : "Multiplier") + ">"
+										+ " <Duration in Minutes>");
 							}
 						} else {
 							sender.sendMessage(ChatColor.RED + "Player " + p.getName() + " hasn't played before!");
@@ -463,12 +472,15 @@ public class QuickSell extends JavaPlugin {
 						local.sendTranslation(sender, "commands.booster.permission", false);
 
 				} catch (IllegalArgumentException e) {
-					sender.sendMessage(
-							"§4Usage: §c/pbooster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> <Multiplier> <Duration in Minutes>");
+					sender.sendMessage("§4Usage: §c/pbooster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> "
+							+ "<" + (cfg.getBoolean("boosters.use-percent-logic") ? "Multiplier %" : "Multiplier") + ">"
+							+ " <Duration in Minutes>");
 				}
 			} else
-				sender.sendMessage(
-						"§4Usage: §c/pbooster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> <Multiplier> <Duration in Minutes>");
+				sender.sendMessage("§4Usage: §c/pbooster <all/monetary/prisongems/exp/mcmmo/casino> <Name of the Player> "
+						+ "<" + (cfg.getBoolean("boosters.use-percent-logic") ? "Multiplier %" : "Multiplier") + ">"
+						+ " <Duration in Minutes>");
+			
 		} else if (cmd.getName().equalsIgnoreCase("boosters")) {
 			if (sender instanceof Player)
 				BoosterMenu.showBoosterOverview((Player) sender);
@@ -681,5 +693,14 @@ public class QuickSell extends JavaPlugin {
 	public boolean isPrisonGemsInstalled() {
 		return prisongems;
 	}
-
+	
+	public static double parsePercent(String s) {
+		return new Double(s.trim().replaceAll("%", "")) / 100.0;
+	}
+	
+	public static String toPercent(double m) {
+		m *= 100;
+		return DoubleHandler.getFancyDouble(m) + "%";
+	}
+	
 }

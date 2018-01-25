@@ -186,10 +186,19 @@ public class Shop {
 	public double handoutReward(Player p, double totalmoney, int items, boolean silent) {
 		double money = totalmoney;
 		if (!silent) QuickSell.local.sendTranslation(p, "messages.sell", false, new Variable("{MONEY}", DoubleHandler.getFancyDouble(money)), new Variable("{ITEMS}", String.valueOf(items)));
-		for (Booster booster: Booster.getBoosters(p.getUniqueId())) {
-			if (booster.getType().equals(BoosterType.MONETARY)) {
-				if (!silent) booster.sendMessage(p, new Variable("{MONEY}", DoubleHandler.getFancyDouble(money * (booster.getMultiplier() - 1))));
-				money = money + money * (booster.getMultiplier() - 1);
+		if (QuickSell.cfg.getBoolean("boosters.use-percent-logic")) { // New percentage booster logic
+			for (Booster booster : Booster.getBoosters(p.getUniqueId())) {
+				if (booster.getType().equals(BoosterType.MONETARY)) {
+					if (!silent) booster.sendMessage(p, new Variable("{MONEY}", DoubleHandler.getFancyDouble(totalmoney * booster.getMultiplier())), new Variable("{MULTIPLIER}", QuickSell.toPercent(booster.getMultiplier())));
+					money = money + (totalmoney * booster.getMultiplier());
+				}
+			}
+		} else {
+			for (Booster booster : Booster.getBoosters(p.getUniqueId())) { // Old stacking booster logic
+				if (booster.getType().equals(BoosterType.MONETARY)) {
+					if (!silent) booster.sendMessage(p, new Variable("{MONEY}", DoubleHandler.getFancyDouble(money * (booster.getMultiplier() - 1))), new Variable("{MULTIPLIER}", String.valueOf(booster.getMultiplier())));
+					money = money + money * (booster.getMultiplier() - 1);
+				}
 			}
 		}
 		if (!silent && !Booster.getBoosters(p.getUniqueId()).isEmpty()) QuickSell.local.sendTranslation(p, "messages.total", false, new Variable("{MONEY}", DoubleHandler.getFancyDouble(money)));
